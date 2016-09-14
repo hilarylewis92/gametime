@@ -1,9 +1,22 @@
-body {
-  margin: auto;
+* {
+  text-align: center;
+}
+
+header {
+  margin: 20px;
+}
+
+h1 {
+  font-size: 30px;
+}
+
+p {
+  font-size: 20px;
+  margin: 10px;
 }
 
 canvas {
   background: gray;
-  display: flex;
-  margin: 0 auto;
+  display: block;
+  margin: auto;
 }
