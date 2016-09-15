@@ -49,7 +49,16 @@ describe('Circle test', function(){
       assert.equal(circle.y, 379);
     });
 
-    
+    it('should have a method called "bounceCircle()"', function() {
+      var circle = new Circle(200, 380);
+      assert.isFunction(circle.bounceCircle);
+    });
 
+    it('"bounceCircle()" should change the direction of the "x" and "y" values to the inverse', function() {
+      var circle = new Circle(200, 380);
+      circle.bounceCircle();
+      assert.equal(circle.x, 199);
+      assert.equal(circle.y, 381);
+    });
   });
 });
