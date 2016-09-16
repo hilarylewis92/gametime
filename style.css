@@ -19,4 +19,5 @@ canvas {
   background: gray;
   display: block;
   margin: auto;
+  border: 3px solid black;
 }

@@ -55,10 +55,10 @@ describe('Circle test', function(){
     });
 
     it('"bounceCircle()" should change the direction of the "x" and "y" values to the inverse', function() {
-      var circle = new Circle(200, 380);
+      var circle = new Circle(800, 0);
       circle.bounceCircle();
-      assert.equal(circle.x, 199);
-      assert.equal(circle.y, 381);
+      assert.equal(circle.x, 799);
+      assert.equal(circle.y, 1);
     });
   });
 });

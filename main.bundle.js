@@ -45,67 +45,50 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var $ = __webpack_require__(1);
+	const World = __webpack_require__(2);
+	// const Circle = require('./circle.js');
+	// const Paddle = require('./paddle.js');
 
 	var canvas = document.getElementById('canvas');
 	var ctx = canvas.getContext('2d');
 
-	var circle = {};
-	circle.x = canvas.width / 4;
-	circle.y = canvas.height;
-	circle.radius = 15;
-
-	var directionX = 1;
-	var directionY = -1;
+	var world = new World();
+	// var circle = new Circle();
+	// var paddle = new Paddle();
 
 	function makeCircle() {
 	  ctx.beginPath();
-	  ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2);
+	  ctx.rect(world.circle.x, world.circle.y, world.circle.width, world.circle.height);
 	  ctx.fillStyle = "purple";
 	  ctx.fill();
 	  ctx.closePath();
 	}
 
-	var paddle = {};
-	paddle.x = canvas.width / 4;
-	paddle.y = 380;
-	paddle.width = 50;
-	paddle.height = 10;
-
 	function makePaddle() {
 	  ctx.beginPath();
-	  ctx.rect(paddle.x, paddle.y, paddle.width, paddle.height);
+	  ctx.rect(world.paddle.x, world.paddle.y, world.paddle.width, world.paddle.height);
 	  ctx.fillStyle = "red";
 	  ctx.fill();
 	  ctx.closePath();
 	}
 
 	function draw() {
-	  ctx.clearRect(0, 0, canvas.width, canvas.height);
+	  ctx.clearRect(world.x, world.y, world.width, world.height);
 	  makeCircle();
+	  world.circle.collidingWithWall();
 	  makePaddle();
-	  circle.x = circle.x + directionX;
-	  circle.y = circle.y + directionY;
+	  world.circle.moveRight();
+	  world.circle.moveUp();
 	}
 
 	setInterval(draw, 10);
 
-	// leftArrowWasPressed: function() {
-	//   if(event.keyCode ==37) {
-	//     paddle.x = paddle.x - 1;
-	// }
-	//
-	// rightArrowWasPressed: function() {
-	//   if (event.keyCode == 39) {
-	//     paddle.x = paddle.x + 1;
-	// }
-	//
-	document.addEventListener('keydown', function (event) {
-	  if (event.keyCode == 37) {
-	    debugger;
-	    paddle.x = paddle.x - 1;
+	document.addEventListener('keydown', function () {
+	  if (event.keyCode === 39) {
+	    world.paddle.rightArrowWasPressed();
 	  }
-	  if (event.keyCode == 39) {
-	    paddle.x = paddle.x + 1;
+	  if (event.keyCode === 37) {
+	    world.paddle.leftArrowWasPressed();
 	  }
 	});
 
@@ -10188,6 +10171,104 @@
 	return jQuery;
 	} );
 
+
+/***/ },
+/* 2 */
+/***/ function(module, exports, __webpack_require__) {
+
+	const Circle = __webpack_require__(3);
+	const Paddle = __webpack_require__(4);
+
+	function World() {
+	  this.x = 0;
+	  this.y = 0;
+	  this.height = 400;
+	  this.width = 800;
+	  this.circle = new Circle();
+	  this.paddle = new Paddle();
+	}
+
+	module.exports = World;
+
+	World.prototype.collidingWithWall = function () {
+	  if (this.circle.x + this.circle.directionX > 800 - this.circle.width || this.circle.x + this.circle.directionX < 0) {
+	    this.circle.directionX = -this.circle.directionX;
+	  }
+	  if (this.circle.y + this.circle.directionY > 400 - this.circle.height || this.circle.y + this.circle.directionY < 0) {
+	    this.circle.directionY = -this.circle.directionY;
+	  }
+	};
+
+	// class World {
+	//   constructor() {
+	//
+	//   }
+	//
+	//   collidingWithWall() {
+	//
+	//   }
+	// }
+
+/***/ },
+/* 3 */
+/***/ function(module, exports) {
+
+	function Circle(options = {}) {
+	  options = options || {};
+	  this.x = options.x || 200;
+	  this.y = options.y || 360;
+	  this.width = 30;
+	  this.height = 30;
+	  this.directionX = 1;
+	  this.directionY = -1;
+	}
+
+	Circle.prototype.moveRight = function () {
+	  this.x = this.x + this.directionX;
+	  return this;
+	};
+	Circle.prototype.moveUp = function () {
+	  this.y = this.y + this.directionY;
+	  return this;
+	};
+
+	// Circle.prototype.bounceCircle = function(){
+	//   if (this.x + directionX > 800 - this.width || this.x + directionX < 0) {
+	//   directionX = -directionX;
+	//   }
+	//   if (this.y + directionY > 400 - this.height || this.y + directionY < 0) {
+	//     directionY = -directionY;
+	//   }
+	// };
+
+	module.exports = Circle;
+
+/***/ },
+/* 4 */
+/***/ function(module, exports) {
+
+	function Paddle(options = {}) {
+	  options = options || {};
+	  this.x = options.x || 180;
+	  this.y = 390;
+	  this.width = 50;
+	  this.height = 10;
+	  this.speed = 30;
+	}
+
+	Paddle.prototype.leftArrowWasPressed = function () {
+	  if (this.x - this.width / 2 > 0) {
+	    this.x = this.x - this.speed;
+	  }
+	};
+
+	Paddle.prototype.rightArrowWasPressed = function () {
+	  if (this.x + this.width < 800) {
+	    this.x = this.x + this.speed;
+	  }
+	};
+
+	module.exports = Paddle;
 
 /***/ }
 /******/ ]);
