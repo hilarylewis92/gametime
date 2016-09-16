@@ -36,8 +36,8 @@ describe('Paddle test', function(){
     assert.isFunction(paddle.arrowLeft);
   });
 
-  it('"arrowLeft" should decrement x by one unit', function(){
-    var paddle = new Paddle(180);
-    assert.equal
-  });
+  // it('"arrowLeft" should decrement x by one unit', function(){
+  //   var paddle = new Paddle(180);
+  //   assert.equal
+  // });
 });
