@@ -21,10 +21,4 @@ describe('World test', function(){
     var world = new World();
     assert.equal(world.width, 800);
   });
-
-  // it('should have a paddle property', function (){
-  //   var world = new World(400, 800);
-  //   assert.isArray(world.paddle);
-  //   assert.deapEqual(world.paddle, []);
-  // });
 });
