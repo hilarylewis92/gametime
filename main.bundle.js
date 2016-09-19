@@ -46,15 +46,11 @@
 
 	var $ = __webpack_require__(1);
 	const World = __webpack_require__(2);
-	// const Circle = require('./circle.js');
-	// const Paddle = require('./paddle.js');
 
 	var canvas = document.getElementById('canvas');
 	var ctx = canvas.getContext('2d');
 
 	var world = new World();
-	// var circle = new Circle();
-	// var paddle = new Paddle();
 
 	function makeCircle() {
 	  ctx.beginPath();
@@ -72,13 +68,28 @@
 	  ctx.closePath();
 	}
 
+	function makeBricks() {
+	  world.bricks.makeBricksColumnAndRows();
+	  for (column = 0; column < world.bricks.columnCount; column++) {
+	    for (row = 0; row < world.bricks.rowCount; row++) {
+	      world.bricks.brickPosition();
+	      ctx.beginPath();
+	      ctx.rect(world.bricks.x, world.bricks.y, world.bricks.width, world.bricks.height);
+	      ctx.fillStyle = "green";
+	      ctx.fill();
+	      ctx.closePath();
+	    }
+	  }
+	}
+
 	function draw() {
 	  ctx.clearRect(world.x, world.y, world.width, world.height);
 	  makeCircle();
-	  world.circle.collidingWithWall();
+	  world.collidingWithWall();
 	  makePaddle();
 	  world.circle.moveRight();
 	  world.circle.moveUp();
+	  makeBricks();
 	}
 
 	setInterval(draw, 10);
@@ -10178,6 +10189,7 @@
 
 	const Circle = __webpack_require__(3);
 	const Paddle = __webpack_require__(4);
+	const Bricks = __webpack_require__(5);
 
 	function World() {
 	  this.x = 0;
@@ -10186,37 +10198,43 @@
 	  this.width = 800;
 	  this.circle = new Circle();
 	  this.paddle = new Paddle();
+	  this.bricks = new Bricks();
 	}
 
-	module.exports = World;
-
 	World.prototype.collidingWithWall = function () {
-	  if (this.circle.x + this.circle.directionX > 800 - this.circle.width || this.circle.x + this.circle.directionX < 0) {
+	  if (this.circle.x < 0 || this.circle.x > 800 - this.circle.width) {
 	    this.circle.directionX = -this.circle.directionX;
 	  }
-	  if (this.circle.y + this.circle.directionY > 400 - this.circle.height || this.circle.y + this.circle.directionY < 0) {
+
+	  if (this.circle.y + this.circle.directionY < 0) {
 	    this.circle.directionY = -this.circle.directionY;
+	  } else if (this.circle.y + this.circle.directionY > this.paddle.y - this.circle.height) {
+
+	    if (this.circle.x > this.paddle.x && this.circle.x < this.paddle.x + this.paddle.width) {
+	      this.circle.directionY = -this.circle.directionY;
+	    }
+
+	    if (this.circle.x + this.circle.width > this.paddle.x && this.circle.x + this.circle.width < this.paddle.x + this.paddle.width) {
+	      this.circle.directionY = -this.circle.directionY;
+	    }
+	  }
+
+	  if (this.circle.y + this.circle.directionY > 405 - this.circle.height) {
+	    this.circle.directionY = 0;
+	    alert('Game over! Press "OK" to restart game.');
+	    document.location.reload();
 	  }
 	};
 
-	// class World {
-	//   constructor() {
-	//
-	//   }
-	//
-	//   collidingWithWall() {
-	//
-	//   }
-	// }
+	module.exports = World;
 
 /***/ },
 /* 3 */
 /***/ function(module, exports) {
 
-	function Circle(options = {}) {
-	  options = options || {};
-	  this.x = options.x || 200;
-	  this.y = options.y || 360;
+	function Circle() {
+	  this.x = 200;
+	  this.y = 360;
 	  this.width = 30;
 	  this.height = 30;
 	  this.directionX = 1;
@@ -10232,13 +10250,12 @@
 	  return this;
 	};
 
-	// Circle.prototype.bounceCircle = function(){
-	//   if (this.x + directionX > 800 - this.width || this.x + directionX < 0) {
-	//   directionX = -directionX;
-	//   }
-	//   if (this.y + directionY > 400 - this.height || this.y + directionY < 0) {
-	//     directionY = -directionY;
-	//   }
+	// Circle.prototype.bottomLeft = function () {
+	//   return this.x + this.height;
+	// };
+	//
+	// Circle.prototype.bottomRight = function () {
+	//   return this.bottomLeft() + this.width;
 	// };
 
 	module.exports = Circle;
@@ -10251,9 +10268,9 @@
 	  options = options || {};
 	  this.x = options.x || 180;
 	  this.y = 390;
-	  this.width = 50;
-	  this.height = 10;
-	  this.speed = 30;
+	  this.width = 70;
+	  this.height = 30;
+	  this.speed = 40;
 	}
 
 	Paddle.prototype.leftArrowWasPressed = function () {
@@ -10268,7 +10285,44 @@
 	  }
 	};
 
+	// Paddle.prototype.topRight = function () {
+	//   return this.x + this.width;
+	// };
+
 	module.exports = Paddle;
+
+/***/ },
+/* 5 */
+/***/ function(module, exports) {
+
+	function Bricks() {
+	  this.rowCount = 3;
+	  this.columnCount = 8;
+	  this.width = 96;
+	  this.height = 30;
+	  this.padding = 5;
+	  this.bricks = [];
+	  this.x = this.x;
+	  this.y = this.y;
+	}
+
+	Bricks.prototype.makeBricksColumnAndRows = function (column, row) {
+	  for (column = 0; column < this.columnCount; column++) {
+	    this.bricks[column] = [];
+	    for (row = 0; row < this.rowCount; row++) {
+	      this.bricks[column][row] = { x: 0, y: 0 };
+	    }
+	  }
+	};
+
+	Bricks.prototype.brickPosition = function () {
+	  this.x = column * (this.width + this.padding);
+	  this.bricks[column][row].x = this.x;
+	  this.y = row * (this.height + this.padding);
+	  this.bricks[column][row].y = this.y;
+	};
+
+	module.exports = Bricks;
 
 /***/ }
 /******/ ]);
