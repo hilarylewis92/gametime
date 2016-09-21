@@ -9,14 +9,16 @@ html {
 
 * {
   text-align: center;
+  font-family: 'Shadows Into Light', cursive;
+
 }
 
 header {
-  margin: 20px;
+  margin: 50px;
 }
 
 h1 {
-  font-size: 30px;
+  font-size: 40px;
   color: white;
   padding: 5 0px;
 }
@@ -31,4 +33,15 @@ canvas {
   display: block;
   margin: auto;
   border: 3px solid white;
+}
+
+input {
+  text-decoration: none;
+  background: white;
+  border: none;
+  color: black;
+  margin: 30px;
+  padding: 10px 20px;
+  text-align: center;
+  font-size: 20px;
 }
