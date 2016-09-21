@@ -14,13 +14,12 @@ html {
 }
 
 header {
-  margin: 50px;
+  margin: 30px;
 }
 
 h1 {
   font-size: 40px;
   color: white;
-  padding: 5 0px;
 }
 
 p {
@@ -41,7 +40,7 @@ input {
   border: none;
   color: black;
   margin: 30px;
-  padding: 10px 20px;
+  width: 80px;
   text-align: center;
   font-size: 20px;
 }
