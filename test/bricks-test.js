@@ -12,8 +12,8 @@ describe('Bricks test', function(){
   });
 
   it('should take the first argument and set it as the row count property of the instantiated object', function () {
-    var bricks = new Bricks(3);
-    assert.equal(bricks.rowCount, 3);
+    var bricks = new Bricks(1);
+    assert.equal(bricks.rowCount, 1);
   });
 
   it('should take the second argument and set it as the column count property of the instantiated object', function() {
