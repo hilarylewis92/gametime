@@ -49,7 +49,7 @@
 	var canvas = document.getElementById('canvas');
 	var ctx = canvas.getContext('2d');
 	var pumpkin = new Image();
-	pumpkin.src = './images/pumpkin-icon.svg';
+	pumpkin.src = 'images/pumpkin-icon.svg';
 	var world = new World();
 
 	makeBricks();
