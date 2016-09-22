@@ -46,53 +46,112 @@
 
 	var $ = __webpack_require__(1);
 	const World = __webpack_require__(2);
-
 	var canvas = document.getElementById('canvas');
 	var ctx = canvas.getContext('2d');
-
+	var pumpkin = new Image();
+	pumpkin.src = '../images/pumpkin-icon.svg';
 	var world = new World();
 
+	makeBricks();
+
+	$(".startBtn").on('click', function () {
+	  toggleLevelButtons();
+	  chooseLevelMessage();
+	});
+
+	function toggleLevelButtons() {
+	  $('.level').prop('disabled', false);
+	}
+
+	$(".resetBtn").on('click', function () {
+	  document.location.reload();
+	});
+
+	$(".level1Btn").on('click', function () {
+	  world.bricks.rowCount = 1;
+	  makeBricks();
+	  draw();
+	});
+
+	$(".level2Btn").on('click', function () {
+	  world.bricks.rowCount = 2;
+	  makeBricks();
+	  draw();
+	});
+
+	$(".level3Btn").on('click', function () {
+	  world.bricks.rowCount = 3;
+	  makeBricks();
+	  draw();
+	});
+
 	function makeCircle() {
-	  ctx.beginPath();
-	  ctx.rect(world.circle.x, world.circle.y, world.circle.width, world.circle.height);
 	  ctx.fillStyle = "purple";
-	  ctx.fill();
-	  ctx.closePath();
+	  ctx.drawImage(pumpkin, world.circle.x, world.circle.y, world.circle.width, world.circle.height);
 	}
 
 	function makePaddle() {
-	  ctx.beginPath();
-	  ctx.rect(world.paddle.x, world.paddle.y, world.paddle.width, world.paddle.height);
-	  ctx.fillStyle = "red";
-	  ctx.fill();
-	  ctx.closePath();
+	  ctx.fillStyle = "white";
+	  ctx.fillRect(world.paddle.x, world.paddle.y, world.paddle.width, world.paddle.height);
 	}
 
 	function makeBricks() {
 	  world.bricks.makeBricksColumnAndRows();
-	  for (column = 0; column < world.bricks.columnCount; column++) {
-	    for (row = 0; row < world.bricks.rowCount; row++) {
-	      world.bricks.brickPosition();
-	      ctx.beginPath();
-	      ctx.rect(world.bricks.x, world.bricks.y, world.bricks.width, world.bricks.height);
-	      ctx.fillStyle = "green";
-	      ctx.fill();
-	      ctx.closePath();
+	  for (var column = 0; column < world.bricks.columnCount; column++) {
+	    for (var row = 0; row < world.bricks.rowCount; row++) {
+	      world.bricks.brickPosition(column, row);
 	    }
 	  }
+	}
+
+	function drawBricks() {
+	  for (var column = 0; column < world.bricks.columnCount; column++) {
+	    for (var row = 0; row < world.bricks.rowCount; row++) {
+	      if (world.bricks.bricks[column][row].status === 1) {
+	        ctx.fillStyle = "orange";
+	        ctx.fillRect(world.bricks.bricks[column][row].x, world.bricks.bricks[column][row].y, world.bricks.width, world.bricks.height);
+	      }
+	    }
+	  }
+	}
+
+	function drawScore() {
+	  ctx.font = "16px Arial";
+	  ctx.fillStyle = 'orange';
+	  ctx.fillText("Score: " + world.score, 8, 395);
+	}
+
+	function drawLives() {
+	  ctx.font = "16px Arial";
+	  ctx.fillStyle = "orange";
+	  ctx.fillText("Lives: " + world.lives, 735, 395);
+	}
+
+	function spaceBarMessage() {
+	  ctx.font = "16px Arial";
+	  ctx.fillStyle = 'orange';
+	  ctx.fillText("Press the space bar to begin play", 300, 395);
+	}
+
+	function chooseLevelMessage() {
+	  ctx.font = "16px Arial";
+	  ctx.fillStyle = 'orange';
+	  ctx.fillText("Choose a level before beginning.", 300, 395);
 	}
 
 	function draw() {
 	  ctx.clearRect(world.x, world.y, world.width, world.height);
 	  makeCircle();
-	  world.collidingWithWall();
 	  makePaddle();
+	  drawBricks();
+	  drawScore();
+	  drawLives();
+	  spaceBarMessage();
+	  world.collision();
+	  world.collisionBricks();
 	  world.circle.moveRight();
 	  world.circle.moveUp();
-	  makeBricks();
 	}
-
-	setInterval(draw, 10);
 
 	document.addEventListener('keydown', function () {
 	  if (event.keyCode === 39) {
@@ -100,6 +159,12 @@
 	  }
 	  if (event.keyCode === 37) {
 	    world.paddle.leftArrowWasPressed();
+	  }
+	});
+
+	document.addEventListener('keydown', function () {
+	  if (event.keyCode === 32) {
+	    setInterval(draw, 10);
 	  }
 	});
 
@@ -10196,33 +10261,71 @@
 	  this.y = 0;
 	  this.height = 400;
 	  this.width = 800;
+	  this.lives = 3;
+	  this.score = 0;
 	  this.circle = new Circle();
 	  this.paddle = new Paddle();
 	  this.bricks = new Bricks();
 	}
 
-	World.prototype.collidingWithWall = function () {
-	  if (this.circle.x < 0 || this.circle.x > 800 - this.circle.width) {
-	    this.circle.directionX = -this.circle.directionX;
+	World.prototype.collision = function () {
+	  if (this.circle.x < 0 || this.circle.x > this.width - this.circle.width) {
+	    this.circle.changeXDirection();
 	  }
 
-	  if (this.circle.y + this.circle.directionY < 0) {
-	    this.circle.directionY = -this.circle.directionY;
-	  } else if (this.circle.y + this.circle.directionY > this.paddle.y - this.circle.height) {
+	  if (this.circle.yMovement() < 0) {
+	    this.circle.changeYDirection();
+	  } else if (this.circle.yMovement() > this.paddle.y - this.circle.height) {
 
-	    if (this.circle.x > this.paddle.x && this.circle.x < this.paddle.x + this.paddle.width) {
-	      this.circle.directionY = -this.circle.directionY;
+	    if (this.circle.bottom() >= this.paddle.x && this.circle.bottom() <= this.paddle.x + 35) {
+	      this.circle.changeYDirection();
+	      this.circle.changeXDirection();
 	    }
 
-	    if (this.circle.x + this.circle.width > this.paddle.x && this.circle.x + this.circle.width < this.paddle.x + this.paddle.width) {
-	      this.circle.directionY = -this.circle.directionY;
+	    if (this.circle.x <= this.paddle.top() && this.circle.x >= this.paddle.top() - 35) {
+	      this.circle.changeYDirection();
+	      this.circle.changeXDirection();
+	    }
+
+	    if (this.circle.bottom() >= this.paddle.x + 35 && this.circle.x <= this.paddle.top() - 35) {
+	      this.circle.changeYDirection();
 	    }
 	  }
 
-	  if (this.circle.y + this.circle.directionY > 405 - this.circle.height) {
+	  if (this.circle.yMovement() > this.height - this.circle.height) {
 	    this.circle.directionY = 0;
-	    alert('Game over! Press "OK" to restart game.');
-	    document.location.reload();
+	    this.circle.directionX = 0;
+	    this.lives--;
+	    if (this.lives === 0) {
+	      alert('Game over! Press "OK" to restart game.');
+	      document.location.reload();
+	    } else {
+	      alert('Lost a life. Press OK to have another attempt.');
+	      this.circle = new Circle();
+	    }
+	  }
+	};
+
+	World.prototype.collisionDetection = function (column, row) {
+	  return this.circle.x > this.bricks.bricks[column][row].x && this.circle.x < this.bricks.bricks[column][row].x + this.bricks.width && this.circle.y > this.bricks.bricks[column][row].y && this.circle.y < this.bricks.bricks[column][row].y + this.bricks.height;
+	};
+
+	World.prototype.collisionBricks = function () {
+	  for (var column = 0; column < this.bricks.columnCount; column++) {
+	    for (var row = 0; row < this.bricks.rowCount; row++) {
+	      if (this.bricks.bricks[column][row].status === 1) {
+	        if (this.collisionDetection(column, row)) {
+	          console.log('collision');
+	          this.bricks.bricks[column][row].status = 0;
+	          this.circle.changeYDirection();
+	          this.score++;
+	          if (this.score === this.bricks.rowCount * this.bricks.columnCount) {
+	            alert('CONGRATULATIONS, YOU WIN.');
+	            document.location.reload();
+	          }
+	        }
+	      }
+	    }
 	  }
 	};
 
@@ -10233,30 +10336,39 @@
 /***/ function(module, exports) {
 
 	function Circle() {
-	  this.x = 200;
-	  this.y = 360;
-	  this.width = 30;
-	  this.height = 30;
-	  this.directionX = 1;
-	  this.directionY = -1;
+	  this.x = 240;
+	  this.y = 320;
+	  this.width = 40;
+	  this.height = 40;
+	  this.directionX = 2;
+	  this.directionY = -2;
 	}
 
 	Circle.prototype.moveRight = function () {
 	  this.x = this.x + this.directionX;
 	  return this;
 	};
+
 	Circle.prototype.moveUp = function () {
 	  this.y = this.y + this.directionY;
 	  return this;
 	};
 
-	// Circle.prototype.bottomLeft = function () {
-	//   return this.x + this.height;
-	// };
-	//
-	// Circle.prototype.bottomRight = function () {
-	//   return this.bottomLeft() + this.width;
-	// };
+	Circle.prototype.bottom = function () {
+	  return this.x + this.width;
+	};
+
+	Circle.prototype.yMovement = function () {
+	  return this.y + this.directionY;
+	};
+
+	Circle.prototype.changeXDirection = function () {
+	  return this.directionX = -this.directionX;
+	};
+
+	Circle.prototype.changeYDirection = function () {
+	  return this.directionY = -this.directionY;
+	};
 
 	module.exports = Circle;
 
@@ -10264,17 +10376,16 @@
 /* 4 */
 /***/ function(module, exports) {
 
-	function Paddle(options = {}) {
-	  options = options || {};
-	  this.x = options.x || 180;
-	  this.y = 390;
-	  this.width = 70;
-	  this.height = 30;
-	  this.speed = 40;
+	function Paddle() {
+	  this.x = 200;
+	  this.y = 360;
+	  this.width = 100;
+	  this.height = 10;
+	  this.speed = 50;
 	}
 
 	Paddle.prototype.leftArrowWasPressed = function () {
-	  if (this.x - this.width / 2 > 0) {
+	  if (this.x - this.speed >= 0) {
 	    this.x = this.x - this.speed;
 	  }
 	};
@@ -10285,9 +10396,9 @@
 	  }
 	};
 
-	// Paddle.prototype.topRight = function () {
-	//   return this.x + this.width;
-	// };
+	Paddle.prototype.top = function () {
+	  return this.x + this.width;
+	};
 
 	module.exports = Paddle;
 
@@ -10296,7 +10407,7 @@
 /***/ function(module, exports) {
 
 	function Bricks() {
-	  this.rowCount = 3;
+	  this.rowCount = 1;
 	  this.columnCount = 8;
 	  this.width = 96;
 	  this.height = 30;
@@ -10306,16 +10417,16 @@
 	  this.y = this.y;
 	}
 
-	Bricks.prototype.makeBricksColumnAndRows = function (column, row) {
-	  for (column = 0; column < this.columnCount; column++) {
+	Bricks.prototype.makeBricksColumnAndRows = function () {
+	  for (var column = 0; column < this.columnCount; column++) {
 	    this.bricks[column] = [];
-	    for (row = 0; row < this.rowCount; row++) {
-	      this.bricks[column][row] = { x: 0, y: 0 };
+	    for (var row = 0; row < this.rowCount; row++) {
+	      this.bricks[column][row] = { x: 0, y: 0, status: 1 };
 	    }
 	  }
 	};
 
-	Bricks.prototype.brickPosition = function () {
+	Bricks.prototype.brickPosition = function (column, row) {
 	  this.x = column * (this.width + this.padding);
 	  this.bricks[column][row].x = this.x;
 	  this.y = row * (this.height + this.padding);
