@@ -12,46 +12,46 @@ describe('Circle test', function(){
   });
 
   it('should take the first argument and set it as the "x" property of the instantiated object', function () {
-    var circle = new Circle(200);
-    assert.equal(circle.x, 200);
+    var circle = new Circle(240);
+    assert.equal(circle.x, 240);
   });
 
   it('should take the second argument and set it as the "y" property of the instantiated object', function() {
-    var circle = new Circle(200, 360);
-    assert.equal(circle.y, 360);
+    var circle = new Circle(200, 320);
+    assert.equal(circle.y, 320);
   });
 
   it('should take the third argument and set it as the "width" property of the instantiated object', function() {
-    var circle = new Circle(200, 360, 30);
-    assert.equal(circle.width, 30);
+    var circle = new Circle(200, 360, 40);
+    assert.equal(circle.width, 40);
   });
 
   it('should take the fourth argument and set it as the "height" property of the instantiated object', function() {
-    var circle = new Circle(200, 360, 30, 30);
-    assert.equal(circle.height, 30);
+    var circle = new Circle(200, 360, 30, 40);
+    assert.equal(circle.height, 40);
   });
 
   describe('circle', function(){
     it('should have a method called "moveRight()"', function() {
-      var circle = new Circle(200, 360);
+      var circle = new Circle(240, 360);
       assert.isFunction(circle.moveRight);
     });
 
     it('"moveRight()" should increment the "x" property by 1', function() {
-      var circle = new Circle(200, 360);
+      var circle = new Circle(240, 360);
       circle.moveRight();
-      assert.equal(circle.x, 201);
+      assert.equal(circle.x, 242);
     });
 
     it('should have a method called "moveUp()"', function() {
-      var circle = new Circle(200, 360);
+      var circle = new Circle(200, 320);
       assert.isFunction(circle.moveUp);
     });
 
     it('"moveUp()" should decrement the "y" property by 1', function() {
-      var circle = new Circle(200, 360);
+      var circle = new Circle(200, 320);
       circle.moveUp();
-      assert.equal(circle.y, 359);
+      assert.equal(circle.y, 318);
     });
   //
   //   it('should have a method called "bounceCircle()"', function() {
