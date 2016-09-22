@@ -45,6 +45,10 @@ input {
   font-size: 20px;
 }
 
+.level{
+  color: gray;
+}
+
 .level:focus {
   background: orange;
   color: white;
