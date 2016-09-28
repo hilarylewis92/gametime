@@ -73,33 +73,71 @@
 	  this.y = 0;
 	  this.height = 400;
 	  this.width = 800;
+	  this.lives = 3;
+	  this.score = 0;
 	  this.circle = new Circle();
 	  this.paddle = new Paddle();
 	  this.bricks = new Bricks();
 	}
 
-	World.prototype.collidingWithWall = function () {
-	  if (this.circle.x < 0 || this.circle.x > 800 - this.circle.width) {
-	    this.circle.directionX = -this.circle.directionX;
+	World.prototype.collision = function () {
+	  if (this.circle.x < 0 || this.circle.x > this.width - this.circle.width) {
+	    this.circle.changeXDirection();
 	  }
 
-	  if (this.circle.y + this.circle.directionY < 0) {
-	    this.circle.directionY = -this.circle.directionY;
-	  } else if (this.circle.y + this.circle.directionY > this.paddle.y - this.circle.height) {
+	  if (this.circle.yMovement() < 0) {
+	    this.circle.changeYDirection();
+	  } else if (this.circle.yMovement() > this.paddle.y - this.circle.height) {
 
-	    if (this.circle.x > this.paddle.x && this.circle.x < this.paddle.x + this.paddle.width) {
-	      this.circle.directionY = -this.circle.directionY;
+	    if (this.circle.bottom() >= this.paddle.x && this.circle.bottom() <= this.paddle.x + 35) {
+	      this.circle.changeYDirection();
+	      this.circle.changeXDirection();
 	    }
 
-	    if (this.circle.x + this.circle.width > this.paddle.x && this.circle.x + this.circle.width < this.paddle.x + this.paddle.width) {
-	      this.circle.directionY = -this.circle.directionY;
+	    if (this.circle.x <= this.paddle.top() && this.circle.x >= this.paddle.top() - 35) {
+	      this.circle.changeYDirection();
+	      this.circle.changeXDirection();
+	    }
+
+	    if (this.circle.bottom() >= this.paddle.x + 35 && this.circle.x <= this.paddle.top() - 35) {
+	      this.circle.changeYDirection();
 	    }
 	  }
 
-	  if (this.circle.y + this.circle.directionY > 405 - this.circle.height) {
+	  if (this.circle.yMovement() > this.height - this.circle.height) {
 	    this.circle.directionY = 0;
-	    alert('Game over! Press "OK" to restart game.');
-	    document.location.reload();
+	    this.circle.directionX = 0;
+	    this.lives--;
+	    if (this.lives === 0) {
+	      alert('Game over! Press "OK" to restart game.');
+	      document.location.reload();
+	    } else {
+	      alert('Lost a life. Press OK to have another attempt.');
+	      this.circle = new Circle();
+	    }
+	  }
+	};
+
+	World.prototype.collisionDetection = function (column, row) {
+	  return this.circle.x > this.bricks.bricks[column][row].x && this.circle.x < this.bricks.bricks[column][row].x + this.bricks.width && this.circle.y > this.bricks.bricks[column][row].y && this.circle.y < this.bricks.bricks[column][row].y + this.bricks.height;
+	};
+
+	World.prototype.collisionBricks = function () {
+	  for (var column = 0; column < this.bricks.columnCount; column++) {
+	    for (var row = 0; row < this.bricks.rowCount; row++) {
+	      if (this.bricks.bricks[column][row].status === 1) {
+	        if (this.collisionDetection(column, row)) {
+	          console.log('collision');
+	          this.bricks.bricks[column][row].status = 0;
+	          this.circle.changeYDirection();
+	          this.score++;
+	          if (this.score === this.bricks.rowCount * this.bricks.columnCount) {
+	            alert('CONGRATULATIONS, YOU WIN.');
+	            document.location.reload();
+	          }
+	        }
+	      }
+	    }
 	  }
 	};
 
@@ -110,30 +148,39 @@
 /***/ function(module, exports) {
 
 	function Circle() {
-	  this.x = 200;
-	  this.y = 360;
-	  this.width = 30;
-	  this.height = 30;
-	  this.directionX = 1;
-	  this.directionY = -1;
+	  this.x = 240;
+	  this.y = 320;
+	  this.width = 40;
+	  this.height = 40;
+	  this.directionX = 2;
+	  this.directionY = -2;
 	}
 
 	Circle.prototype.moveRight = function () {
 	  this.x = this.x + this.directionX;
 	  return this;
 	};
+
 	Circle.prototype.moveUp = function () {
 	  this.y = this.y + this.directionY;
 	  return this;
 	};
 
-	// Circle.prototype.bottomLeft = function () {
-	//   return this.x + this.height;
-	// };
-	//
-	// Circle.prototype.bottomRight = function () {
-	//   return this.bottomLeft() + this.width;
-	// };
+	Circle.prototype.bottom = function () {
+	  return this.x + this.width;
+	};
+
+	Circle.prototype.yMovement = function () {
+	  return this.y + this.directionY;
+	};
+
+	Circle.prototype.changeXDirection = function () {
+	  return this.directionX = -this.directionX;
+	};
+
+	Circle.prototype.changeYDirection = function () {
+	  return this.directionY = -this.directionY;
+	};
 
 	module.exports = Circle;
 
@@ -141,17 +188,16 @@
 /* 4 */
 /***/ function(module, exports) {
 
-	function Paddle(options = {}) {
-	  options = options || {};
-	  this.x = options.x || 180;
-	  this.y = 390;
-	  this.width = 70;
-	  this.height = 30;
-	  this.speed = 40;
+	function Paddle() {
+	  this.x = 200;
+	  this.y = 360;
+	  this.width = 100;
+	  this.height = 10;
+	  this.speed = 50;
 	}
 
 	Paddle.prototype.leftArrowWasPressed = function () {
-	  if (this.x - this.width / 2 > 0) {
+	  if (this.x - this.speed >= 0) {
 	    this.x = this.x - this.speed;
 	  }
 	};
@@ -162,9 +208,9 @@
 	  }
 	};
 
-	// Paddle.prototype.topRight = function () {
-	//   return this.x + this.width;
-	// };
+	Paddle.prototype.top = function () {
+	  return this.x + this.width;
+	};
 
 	module.exports = Paddle;
 
@@ -173,7 +219,7 @@
 /***/ function(module, exports) {
 
 	function Bricks() {
-	  this.rowCount = 3;
+	  this.rowCount = 1;
 	  this.columnCount = 8;
 	  this.width = 96;
 	  this.height = 30;
@@ -183,16 +229,16 @@
 	  this.y = this.y;
 	}
 
-	Bricks.prototype.makeBricksColumnAndRows = function (column, row) {
-	  for (column = 0; column < this.columnCount; column++) {
+	Bricks.prototype.makeBricksColumnAndRows = function () {
+	  for (var column = 0; column < this.columnCount; column++) {
 	    this.bricks[column] = [];
-	    for (row = 0; row < this.rowCount; row++) {
-	      this.bricks[column][row] = { x: 0, y: 0 };
+	    for (var row = 0; row < this.rowCount; row++) {
+	      this.bricks[column][row] = { x: 0, y: 0, status: 1 };
 	    }
 	  }
 	};
 
-	Bricks.prototype.brickPosition = function () {
+	Bricks.prototype.brickPosition = function (column, row) {
 	  this.x = column * (this.width + this.padding);
 	  this.bricks[column][row].x = this.x;
 	  this.y = row * (this.height + this.padding);
@@ -8842,46 +8888,46 @@
 	  });
 
 	  it('should take the first argument and set it as the "x" property of the instantiated object', function () {
-	    var circle = new Circle(200);
-	    assert.equal(circle.x, 200);
+	    var circle = new Circle(240);
+	    assert.equal(circle.x, 240);
 	  });
 
 	  it('should take the second argument and set it as the "y" property of the instantiated object', function () {
-	    var circle = new Circle(200, 360);
-	    assert.equal(circle.y, 360);
+	    var circle = new Circle(200, 320);
+	    assert.equal(circle.y, 320);
 	  });
 
 	  it('should take the third argument and set it as the "width" property of the instantiated object', function () {
-	    var circle = new Circle(200, 360, 30);
-	    assert.equal(circle.width, 30);
+	    var circle = new Circle(200, 360, 40);
+	    assert.equal(circle.width, 40);
 	  });
 
 	  it('should take the fourth argument and set it as the "height" property of the instantiated object', function () {
-	    var circle = new Circle(200, 360, 30, 30);
-	    assert.equal(circle.height, 30);
+	    var circle = new Circle(200, 360, 30, 40);
+	    assert.equal(circle.height, 40);
 	  });
 
 	  describe('circle', function () {
 	    it('should have a method called "moveRight()"', function () {
-	      var circle = new Circle(200, 360);
+	      var circle = new Circle(240, 360);
 	      assert.isFunction(circle.moveRight);
 	    });
 
 	    it('"moveRight()" should increment the "x" property by 1', function () {
-	      var circle = new Circle(200, 360);
+	      var circle = new Circle(240, 360);
 	      circle.moveRight();
-	      assert.equal(circle.x, 201);
+	      assert.equal(circle.x, 242);
 	    });
 
 	    it('should have a method called "moveUp()"', function () {
-	      var circle = new Circle(200, 360);
+	      var circle = new Circle(200, 320);
 	      assert.isFunction(circle.moveUp);
 	    });
 
 	    it('"moveUp()" should decrement the "y" property by 1', function () {
-	      var circle = new Circle(200, 360);
+	      var circle = new Circle(200, 320);
 	      circle.moveUp();
-	      assert.equal(circle.y, 359);
+	      assert.equal(circle.y, 318);
 	    });
 	    //
 	    //   it('should have a method called "bounceCircle()"', function() {
@@ -8916,46 +8962,46 @@
 	  });
 
 	  it('should take the first argument and set it as the "x" property of the instantiated object', function () {
-	    var paddle = new Paddle(180);
-	    assert.equal(paddle.x, 180);
+	    var paddle = new Paddle(200);
+	    assert.equal(paddle.x, 200);
 	  });
 
 	  it('should take the second argument and set it as the "y" property of the instantiated object', function () {
-	    var paddle = new Paddle(180, 390);
-	    assert.equal(paddle.y, 390);
+	    var paddle = new Paddle(180, 360);
+	    assert.equal(paddle.y, 360);
 	  });
 
 	  it('should take the third argument and set it as the "width" property of the instantiated object', function () {
-	    var paddle = new Paddle(180, 390, 70);
-	    assert.equal(paddle.width, 70);
+	    var paddle = new Paddle(180, 390, 100);
+	    assert.equal(paddle.width, 100);
 	  });
 
 	  it('should take the fourth argument and set it as the "height" property of the instantiated object', function () {
-	    var paddle = new Paddle(180, 390, 70, 30);
-	    assert.equal(paddle.height, 30);
+	    var paddle = new Paddle(180, 390, 70, 10);
+	    assert.equal(paddle.height, 10);
 	  });
 
 	  describe('paddle', function () {
 	    it('should have a method called "leftArrowWasPressed()"', function () {
-	      var paddle = new Paddle(180);
+	      var paddle = new Paddle(200);
 	      assert.isFunction(paddle.leftArrowWasPressed);
 	    });
 
 	    it('"leftArrowWasPressed()" should decrement the "x" property by the paddle speed', function () {
-	      var paddle = new Paddle(180);
+	      var paddle = new Paddle(200);
 	      paddle.leftArrowWasPressed();
-	      assert.equal(paddle.x, 140);
+	      assert.equal(paddle.x, 150);
 	    });
 
 	    it('should have a method called "rightArrowWasPressed()"', function () {
-	      var paddle = new Paddle(180);
+	      var paddle = new Paddle(200);
 	      assert.isFunction(paddle.rightArrowWasPressed);
 	    });
 
 	    it('"rightArrowWasPressed()" should increment the "x" property by the paddles speed', function () {
-	      var paddle = new Paddle(180);
+	      var paddle = new Paddle(200);
 	      paddle.rightArrowWasPressed();
-	      assert.equal(paddle.x, 220);
+	      assert.equal(paddle.x, 250);
 	    });
 	  });
 	});
@@ -8978,8 +9024,8 @@
 	  });
 
 	  it('should take the first argument and set it as the row count property of the instantiated object', function () {
-	    var bricks = new Bricks(3);
-	    assert.equal(bricks.rowCount, 3);
+	    var bricks = new Bricks(1);
+	    assert.equal(bricks.rowCount, 1);
 	  });
 
 	  it('should take the second argument and set it as the column count property of the instantiated object', function () {
